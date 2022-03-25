@@ -1,6 +1,6 @@
 import logging
 import string
-
+import datetime
 
 from telegram.ext import (ConversationHandler, CommandHandler,
                           MessageHandler, Filters)
@@ -63,18 +63,19 @@ def create_slot(bot, update):
     chat_id = update.message.chat_id
     text = update.message.text
     times = list(range(int(text)+1))[1:]
-    starting_hour = 10
+    slot_date = datetime.datetime.today()
+    slot_date.replace(hour=10, minute=0, second=0)
 
     while len(times)>0:
         new_slot = Slot(code=str(DAY_LETTERS[0]+str(times[0])))
-        new_slot.start = starting_hour
+        new_slot.start = slot_date
 
         pycampista = Pycampista.get_or_create(username=username, chat_id=chat_id)[0]
         new_slot.current_wizzard = pycampista
 
         new_slot.save()
         times.pop(0)
-        starting_hour += 1
+        new_slot.replace(start=new_slot.start+datetime.timedelta(hours=1))
     
     DAY_LETTERS.pop(0)
     
